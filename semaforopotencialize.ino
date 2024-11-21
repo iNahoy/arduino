@@ -10,38 +10,39 @@ void setup() {
   pinMode(ylw, OUTPUT);
   pinMode(grn, OUTPUT);
   pinMode(btn, INPUT_PULLUP);
-
-  // Inicializa os LEDs com o vermelho ligado
-  digitalWrite(red, HIGH);
-  digitalWrite(ylw, LOW);
-  digitalWrite(grn, LOW);
 }
 
 void verificarBotao() {
-  static bool btnApertadoAnterior = false; // Estado anterior do botão
-  bool estadoAtual = digitalRead(btn) == LOW; // Botão pressionado?
-
-  if (estadoAtual && !btnApertadoAnterior) {
-    interromper = !interromper; // Alterna o estado de interrupção
+  if (digitalRead(btn) == LOW) { // Botão pressionado
+    interromper = true;          // Ativa a interrupção
   }
+}
 
-  btnApertadoAnterior = estadoAtual; // Atualiza o estado anterior
+void atrasoComInterrupcao(int tempo) {
+  // Executa o atraso dividido em partes pequenas e verifica o botão
+  for (int i = 0; i < tempo; i += 10) {
+    delay(10); // Atraso curto de 10 ms
+    verificarBotao();
+    if (interromper) return; // Interrompe imediatamente se necessário
+  }
 }
 
 void semaforo() {
+  // Sinal vermelho
   digitalWrite(red, HIGH);
-  digitalWrite(ylw, LOW);
-  digitalWrite(grn, LOW);
-  delay(3000);
+  atrasoComInterrupcao(3000);
 
+  // Sinal amarelo
   digitalWrite(red, LOW);
   digitalWrite(ylw, HIGH);
-  delay(1500);
+  atrasoComInterrupcao(1500);
 
+  // Sinal verde
   digitalWrite(ylw, LOW);
   digitalWrite(grn, HIGH);
-  delay(3000);
+  atrasoComInterrupcao(3000);
 
+  // Desliga o verde após o ciclo
   digitalWrite(grn, LOW);
 }
 
@@ -49,12 +50,12 @@ void loop() {
   verificarBotao(); // Verifica o estado do botão
 
   if (interromper) {
-    // Estado interrompido: apenas o vermelho ligado
+    // Interrompido: Retorna ao sinal vermelho
     digitalWrite(red, HIGH);
     digitalWrite(ylw, LOW);
     digitalWrite(grn, LOW);
+    interromper = false; // Reseta o estado de interrupção
   } else {
-    // Ciclo normal do semáforo
-    semaforo();
+    semaforo(); // Executa o ciclo normal do semáforo
   }
 }
